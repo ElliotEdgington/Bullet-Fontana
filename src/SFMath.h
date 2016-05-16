@@ -1,6 +1,10 @@
 #ifndef SFMATH_H
 #define SFMATH_H
 
+
+//including this so that screentoworldpoint can be used in more than one class
+#include <SDL2/SDL.h>
+
 /**
  * A Vector representation somewhat in the style of the IBM/Sony Vectormath library.
  */
@@ -89,6 +93,13 @@ static const Vector2 xAxis() {
 
 static const Vector2 yAxis() {
   return Vector2(0.0f, 1.0f);
+}
+
+inline Vector2 GameSpaceToScreenSpace(SDL_Renderer* renderer, Vector2 &r) {
+  int w, h;
+  SDL_GetRendererOutputSize(renderer, &w, &h);
+
+  return Vector2 ( r.getX(), (h - r.getY()));
 }
 
 

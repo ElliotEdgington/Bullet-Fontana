@@ -5,8 +5,10 @@ enum SFError {SF_ERROR_NONE, SF_ERROR_INIT, SF_ERROR_VIDEOMODE, SF_ERROR_LOAD_AS
 
 // Forward declaration of classes
 class SFEvent;
-class SFAsset;
+//class SFAsset;
+class SFGUI;
 
 typedef int SFAssetId;
+typedef int SFGUIId;
 
 #endif

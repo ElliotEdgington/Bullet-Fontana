@@ -2,42 +2,14 @@
 
 int SFAsset::SFASSETID=0;
 
-SFAsset::SFAsset(SFASSETTYPE type, std::shared_ptr<SFWindow> window): type(type), sf_window(window) {
+SFAsset::SFAsset(std::shared_ptr<SFWindow> window) : sf_window(window), alive(true){
   this->id   = ++SFASSETID;
-
-  switch (type) {
-  case SFASSET_PLAYER:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
-    break;
-  case SFASSET_PROJECTILE:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/projectile.png");
-    break;
-  case SFASSET_ALIEN:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
-    break;
-  case SFASSET_COIN:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/coin.png");
-    break;
-  }
-
-  if(!sprite) {
-    cerr << "Could not load asset of type " << type << endl;
-    throw SF_ERROR_LOAD_ASSET;
-  }
-
-  // Get texture width & height
-  int w, h;
-  SDL_QueryTexture(sprite, NULL, NULL, &w, &h);
-
-  // Initialise bounding box
-  bbox = make_shared<SFBoundingBox>(SFBoundingBox(Vector2(0.0f, 0.0f), w, h));
 }
 
 SFAsset::SFAsset(const SFAsset& a) {
   sprite = a.sprite;
   sf_window = a.sf_window;
   bbox   = a.bbox;
-  type   = a.type;
 }
 
 SFAsset::~SFAsset() {
@@ -48,6 +20,17 @@ SFAsset::~SFAsset() {
   }
 }
 
+void SFAsset::LoadSprite(){
+  if(!sprite) {
+    cerr << "Could not load asset of type " << endl;
+    throw SF_ERROR_LOAD_ASSET;
+  }
+  // Get texture width & height
+  SDL_QueryTexture(sprite, NULL, NULL, &sprite_width, &sprite_height);
+  // Initialise bounding box
+  bbox = make_shared<SFBoundingBox>(SFBoundingBox(Vector2(0.0f, 0.0f), sprite_width, sprite_height));
+}
+
 /**
  * The logical coordinates in the game assume that the screen
  * is indexed from 0,0 in the bottom left corner.  The blittable
@@ -55,15 +38,7 @@ SFAsset::~SFAsset() {
  * need to convert between the two coordinate spaces.  We assume
  * that there is a 1-to-1 quantisation.
  */
-Vector2 GameSpaceToScreenSpace(SDL_Renderer* renderer, Vector2 &r) {
-  int w, h;
-  SDL_GetRendererOutputSize(renderer, &w, &h);
 
-  return Vector2 (
-                  r.getX(),
-                  (h - r.getY())
-                  );
-}
 
 void SFAsset::SetPosition(Point2 & point) {
   Vector2 v(point.getX(), point.getY());
@@ -93,27 +68,34 @@ void SFAsset::OnRender() {
   SDL_RenderCopy(sf_window->getRenderer(), sprite, NULL, &rect);
 }
 
+// basic movement up down left right.
 void SFAsset::GoWest() {
-  Vector2 c = *(bbox->centre) + Vector2(-5.0f, 0.0f);
-  if(!(c.getX() < 0)) {
-    bbox->centre.reset();
-    bbox->centre = make_shared<Vector2>(c);
-  }
+  Vector2 c = *(bbox->centre) + Vector2(-move_speed, 0.0f);
+  bbox->centre.reset();
+  bbox->centre = make_shared<Vector2>(c);
 }
 
 void SFAsset::GoEast() {
-  int w, h;
-  SDL_GetRendererOutputSize(sf_window->getRenderer(), &w, &h);
-
-  Vector2 c = *(bbox->centre) + Vector2(5.0f, 0.0f);
-  if(!(c.getX() > w)) {
-    bbox->centre.reset();
-    bbox->centre = make_shared<Vector2>(c);
-  }
+  Vector2 c = *(bbox->centre) + Vector2(move_speed, 0.0f);
+  bbox->centre.reset();
+  bbox->centre = make_shared<Vector2>(c);
 }
 
 void SFAsset::GoNorth() {
-  Vector2 c = *(bbox->centre) + Vector2(0.0f, 1.0f);
+  Vector2 c = *(bbox->centre) + Vector2(0.0f, move_speed);
+  bbox->centre.reset();
+  bbox->centre = make_shared<Vector2>(c);
+}
+
+void SFAsset::GoSouth(){
+  Vector2 c = *(bbox->centre) + Vector2(0.0f, -move_speed);
+  bbox->centre.reset();
+  bbox->centre = make_shared<Vector2>(c);
+}
+
+// vector2 param for more free movement
+void SFAsset::GoDirection(Vector2 & v){
+  Vector2 c = *(bbox->centre) + v*move_speed;
   bbox->centre.reset();
   bbox->centre = make_shared<Vector2>(c);
 }
@@ -127,15 +109,14 @@ shared_ptr<SFBoundingBox> SFAsset::GetBoundingBox() {
 }
 
 void SFAsset::SetNotAlive() {
-  type = SFASSET_DEAD;
+  alive = false;
 }
 
 bool SFAsset::IsAlive() {
-  return (SFASSET_DEAD != type);
+  return alive;
 }
 
 void SFAsset::HandleCollision() {
-  if(SFASSET_PROJECTILE == type || SFASSET_ALIEN == type) {
-    SetNotAlive();
-  }
+    health -= 1;
+    if(health <= 0)SetNotAlive();
 }

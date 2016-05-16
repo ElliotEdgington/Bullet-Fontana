@@ -14,6 +14,7 @@ using namespace std;
 #include "SFEvent.h"
 #include "SFWindow.h"
 #include "SFBoundingBox.h"
+#include "SFMath.h"
 
 /**
  * We could create SFPlayer, SFProjectile and SFAsset which are subclasses
@@ -21,14 +22,14 @@ using namespace std;
  * enum to mark the type of the SFAsset.  If we add more asset types then
  * the subclassing strategy becomes a better option.
  */
-enum SFASSETTYPE {SFASSET_DEAD, SFASSET_PLAYER, SFASSET_PROJECTILE, SFASSET_ALIEN, SFASSET_COIN};
 
 class SFAsset {
 public:
-  SFAsset(const SFASSETTYPE, const std::shared_ptr<SFWindow>);
+  SFAsset(const std::shared_ptr<SFWindow>);
   SFAsset(const SFAsset&);
   virtual ~SFAsset();
 
+  virtual void      LoadSprite();
   virtual void      SetPosition(Point2 &);
   virtual Point2    GetPosition();
   virtual SFAssetId GetId();
@@ -36,23 +37,31 @@ public:
   virtual void      GoEast();
   virtual void      GoWest();
   virtual void      GoNorth();
+  virtual void      GoSouth();
+  virtual void      GoDirection(Vector2 &);
   virtual void      SetNotAlive();
   virtual bool      IsAlive();
   virtual void      HandleCollision();
 
   virtual bool                      CollidesWith(shared_ptr<SFAsset>);
   virtual shared_ptr<SFBoundingBox> GetBoundingBox();
-private:
+protected:
   // it would be nice if we could make this into a smart pointer,
   // but, because we need to call SDL_FreeSurface on it, we can't.
   // (or we could use a std::shared_ptr with a custom Deleter, but
   // that's a little too much right now)
   SDL_Texture               * sprite;
   shared_ptr<SFBoundingBox>   bbox;
-  SFASSETTYPE                 type;
   SFAssetId                   id;
   std::shared_ptr<SFWindow>   sf_window;
 
+  float move_speed;
+  int health;
+  int sprite_width;
+  int sprite_height;
+  bool alive;
+
+private:
   static int SFASSETID;
 };
 

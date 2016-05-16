@@ -24,7 +24,10 @@ private:
 
   pair<float,float> projectOntoAxis(const SFBoundingBox &, enum AXIS);
 
+//Only classes with unique bounding boxes
   friend class SFAsset;
+  friend class SFPlayer;
+  friend class SFGUI;
   friend ostream& operator<<(ostream &, const SFBoundingBox &);
 };
 
