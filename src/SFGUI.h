@@ -2,11 +2,14 @@
 #define SFGUI_H
 
 #include <string>
+#include <cstring>
 #include <memory>
 #include <iostream>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
 
 using namespace std;
 
@@ -29,7 +32,9 @@ public:
   virtual void      SetPosition(Point2 &);
   virtual Point2    GetPosition();
   virtual SFGUIId   GetId();
+  virtual void      SetText(string);
   virtual void      OnRender();
+
   //virtual void      SetAppear();
   //virtual bool      IsAppear();
 
@@ -39,6 +44,9 @@ private:
   // (or we could use a std::shared_ptr with a custom Deleter, but
   // that's a little too much right now)
   SDL_Texture               * sprite;
+  TTF_Font                  * font;
+  SDL_Color                   text_color;
+  shared_ptr<string>          text;
   shared_ptr<SFBoundingBox>   bbox;
   SFGUITYPE                   type;
   SFGUIId                     id;

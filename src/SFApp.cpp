@@ -38,10 +38,12 @@ SFApp::SFApp(std::shared_ptr<SFWindow> window) : fire(0), is_running(true), sf_w
   // coins.push_back(coin);
 
 	//gui texture test.
-  // auto GUITEST = make_shared<SFGUI>(SFGUI_FISH,sf_window);
-	// auto posGUI = Point2(100,100);
-	// GUITEST->SetPosition(posGUI);
-	// GUI.push_back(GUITEST);
+  auto GUITEST = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
+	auto posGUI = Point2((3*canvas_w/4),canvas_h - 10);
+	GUITEST->SetPosition(posGUI);
+	string text ("Score = 1002920");
+	GUITEST->SetText(text);
+	GUI.push_back(GUITEST);
 }
 
 SFApp::~SFApp() {

@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h> // Pull in the SDL definitions
+#include <SDL2/SDL_ttf.h> //Pull True Font definitions
 #include <memory>     // Pull in std::shared_ptr
+#include <iostream>
 
 using namespace std;  // So that we can write `vector` rather than `std::vector`
 
@@ -8,8 +10,10 @@ using namespace std;  // So that we can write `vector` rather than `std::vector`
 
 // Very Uncool Global Variable
 // Fixme: Bonus points for making this go away.
+// Added more because I'm a bad student.
 SDL_Window * g_window;
 SDL_Renderer * g_renderer;
+SDL_Surface * g_surface;
 
 enum userEvents{UPDATE_EVENT};
 
@@ -52,10 +56,26 @@ SFError InitGraphics() {
     throw SF_ERROR_VIDEOMODE;
   }
 
+  g_surface = SDL_GetWindowSurface(g_window);
+  if (!g_surface) {
+    cerr << "Failed to create Surface: " << SDL_GetError() << endl;
+    throw SF_ERROR_VIDEOMODE;
+  }
+
   SDL_SetRenderDrawColor(g_renderer, 128, 128, 128, 255);
 
   return SF_ERROR_NONE;
 }
+
+SFError InitTTF(){
+  if(TTF_Init() == -1){
+    cerr << "Failed to initialise text renderer" << SDL_GetError() << endl;
+    throw SF_ERROR_INIT;
+  }
+  return SF_ERROR_NONE;
+}
+
+
 
 int main(int arc, char ** argv) {
   shared_ptr<SFApp> sfapp = nullptr;
@@ -66,9 +86,14 @@ int main(int arc, char ** argv) {
   } catch (SFError e) {
     return e;
   }
+  try {
+    InitTTF();
+  } catch (SFError e) {
+    return e;
+  }
 
   // Initialise world
-  std::shared_ptr<SFWindow> window = make_shared<SFWindow>(g_window, g_renderer);
+  std::shared_ptr<SFWindow> window = make_shared<SFWindow>(g_window, g_renderer, g_surface);
   sfapp = shared_ptr<SFApp>(new SFApp(window));
 
   // Set up top-level timer to UpdateWorld
@@ -81,5 +106,6 @@ int main(int arc, char ** argv) {
 
   // Delete the app -- allows the SFApp object to do its own cleanup
   sfapp.reset();
+  TTF_Quit();
   return SF_ERROR_NONE;
 }
