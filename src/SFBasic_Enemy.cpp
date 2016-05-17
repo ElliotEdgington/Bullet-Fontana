@@ -68,3 +68,7 @@ void SFBasic_Enemy::SetPosition(Point2 & point) {
   bbox->SetCentre(v);
   startPos = point;
 }
+
+ENEMYTYPE SFBasic_Enemy::GetType(){
+  return type;
+}

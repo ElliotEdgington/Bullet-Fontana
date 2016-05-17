@@ -6,6 +6,7 @@
 #include <list>     // Pull in list
 #include <sstream>
 #include <cmath>
+#include <string>
 
 using namespace std;
 
@@ -41,28 +42,37 @@ private:
   bool    HitWall();
   void    CreateExplosion(Point2);
   void    FireAt(Point2,Point2);
+  void    AddToScore(int);
+  void    DropPowerUp(Point2, POWERTYPE);
 
   //variables
 private:
-  bool                    is_running;
+  bool                                is_running;
+  shared_ptr<SFWindow>                sf_window;
 
-  shared_ptr<SFWindow>       sf_window;
+  shared_ptr<SFPlayer>                player;
+  shared_ptr<SFGUI>                   scoreText;
+  shared_ptr<SFBoundingBox>           app_box;
+  //Split enemy and player projectile so collision doesnt have to loop through
+  //unnecessary projectiles.(eg player hitting player projectiles)
+  list<shared_ptr<SFProjectile> >     e_projectiles;
+  list<shared_ptr<SFProjectile> >     p_projectiles;
+  list<shared_ptr<SFBasic_Enemy> >    aliens;
+  list<shared_ptr<SFPower_Up> >       power_ups;
+  list<shared_ptr<SFWall> >           walls;
+  list<shared_ptr<SFGUI> >            GUI;
 
-  shared_ptr<SFPlayer>        player;
-  shared_ptr<SFBoundingBox>  app_box;
-  list<shared_ptr<SFProjectile> > projectiles;
-  list<shared_ptr<SFBasic_Enemy> > aliens;
-  list<shared_ptr<SFPower_Up> > coins;
-  list<shared_ptr<SFWall> > walls;
-  list<shared_ptr<SFGUI> > GUI;
-
-  int fire;
-  int fire_delay;
-  bool P_UP;
-  bool P_DOWN;
-  bool P_LEFT;
-  bool P_RIGHT;
-  bool P_SHOOT;
-  bool P_FIRE;
+  int      score;
+  int      wall_power;
+  bool     gun_power;
+  int      fire;
+  int      power_timer;
+  int      fire_timer;
+  bool     P_UP;
+  bool     P_DOWN;
+  bool     P_LEFT;
+  bool     P_RIGHT;
+  bool     P_SHOOT;
+  bool     P_FIRE;
 };
 #endif

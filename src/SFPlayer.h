@@ -22,6 +22,7 @@ public:
   SFPlayer(const std::shared_ptr<SFWindow>);
   virtual ~SFPlayer();
 
+  void AddHealth(int);
   void GoNorth();
   void GoSouth();
   void GoEast();

@@ -5,14 +5,12 @@
 
 class SFWindow {
  public:
-  SFWindow(SDL_Window*, SDL_Renderer*, SDL_Surface*);
+  SFWindow(SDL_Window*, SDL_Renderer*);
   SDL_Window* getWindow();
   SDL_Renderer* getRenderer();
-  SDL_Surface* getSurface();
  private:
   SDL_Window*   window;
   SDL_Renderer* renderer;
-  SDL_Surface* surface;
 };
 
 #endif

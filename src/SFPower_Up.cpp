@@ -1,8 +1,9 @@
 #include "SFPower_Up.h"
 
-SFPower_Up::SFPower_Up(POWERTYPE type ,std::shared_ptr<SFWindow> window) : SFAsset(window){
+SFPower_Up::SFPower_Up(POWERTYPE type ,std::shared_ptr<SFWindow> window) : SFAsset(window), type(type){
   sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/coin.png");
-  move_speed = 3.0f;
+  move_speed = 0.5f;
+  health = 1;
 
 
   //Loads ___ sprite
@@ -11,8 +12,6 @@ SFPower_Up::SFPower_Up(POWERTYPE type ,std::shared_ptr<SFWindow> window) : SFAss
       break;
     case POWER_BULLETS:
       break;
-    case POWER_SHIELD:
-      break;
     case POWER_WALL:
       break;
   }
@@ -20,3 +19,7 @@ SFPower_Up::SFPower_Up(POWERTYPE type ,std::shared_ptr<SFWindow> window) : SFAss
 }
 
 SFPower_Up::~SFPower_Up(){}
+
+POWERTYPE SFPower_Up::GetType(){
+  return type;
+}

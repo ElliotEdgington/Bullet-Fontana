@@ -3,11 +3,16 @@
 SFPlayer::SFPlayer(std::shared_ptr<SFWindow> window) : SFAsset(window){
   sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
   move_speed = 4.0f;
-  health = 3;
+  health = 100;
   LoadSprite();
 }
 SFPlayer::~SFPlayer(){}
 
+
+void SFPlayer::AddHealth(int h){
+  health += h;
+  if(health > 100) health = 100;
+}
 
 //overriding movement so I can add limitations.
 

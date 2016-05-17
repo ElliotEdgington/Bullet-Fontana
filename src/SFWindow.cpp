@@ -1,7 +1,6 @@
 #include "SFWindow.h"
 
-SFWindow::SFWindow(SDL_Window * w, SDL_Renderer * r, SDL_Surface * s):
-                                  window(w), renderer(r), surface(s) {
+SFWindow::SFWindow(SDL_Window * w, SDL_Renderer * r) : window(w), renderer(r) {
 }
 
 SDL_Window * SFWindow::getWindow() {
@@ -10,8 +9,4 @@ SDL_Window * SFWindow::getWindow() {
 
 SDL_Renderer * SFWindow::getRenderer() {
   return renderer;
-}
-
-SDL_Surface * SFWindow::getSurface() {
-  return surface;
 }

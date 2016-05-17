@@ -10,10 +10,8 @@ using namespace std;  // So that we can write `vector` rather than `std::vector`
 
 // Very Uncool Global Variable
 // Fixme: Bonus points for making this go away.
-// Added more because I'm a bad student.
 SDL_Window * g_window;
 SDL_Renderer * g_renderer;
-SDL_Surface * g_surface;
 
 enum userEvents{UPDATE_EVENT};
 
@@ -56,11 +54,6 @@ SFError InitGraphics() {
     throw SF_ERROR_VIDEOMODE;
   }
 
-  g_surface = SDL_GetWindowSurface(g_window);
-  if (!g_surface) {
-    cerr << "Failed to create Surface: " << SDL_GetError() << endl;
-    throw SF_ERROR_VIDEOMODE;
-  }
 
   SDL_SetRenderDrawColor(g_renderer, 128, 128, 128, 255);
 
@@ -93,7 +86,7 @@ int main(int arc, char ** argv) {
   }
 
   // Initialise world
-  std::shared_ptr<SFWindow> window = make_shared<SFWindow>(g_window, g_renderer, g_surface);
+  std::shared_ptr<SFWindow> window = make_shared<SFWindow>(g_window, g_renderer);
   sfapp = shared_ptr<SFApp>(new SFApp(window));
 
   // Set up top-level timer to UpdateWorld

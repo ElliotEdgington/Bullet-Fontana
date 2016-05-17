@@ -30,24 +30,21 @@ SFGUI::SFGUI(SFGUITYPE type, std::shared_ptr<SFWindow> window):
     sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
     break;
   case SFGUI_TEXTBOX:
-    text = make_shared<string>("hello world");
+    SDL_Surface *textbox;
+    textbox = TTF_RenderText_Solid(font, "text not set", text_color);
+    sprite = SDL_CreateTextureFromSurface(sf_window->getRenderer(),textbox);
+    SDL_FreeSurface(textbox);
     break;
   }
 
-  if(!sprite && !text) {
+  if(!sprite) {
     cerr << "Could not load asset of type " << type << endl;
     throw SF_ERROR_LOAD_ASSET;
   }
 
   // Get texture width & height
-  if(!SFGUI_TEXTBOX){
-    SDL_QueryTexture(sprite, NULL, NULL, &sprite_width, &sprite_height);
-  }else{
-      sprite_width = 300; sprite_height = 25;
-  }
-
+  SDL_QueryTexture(sprite, NULL, NULL, &sprite_width, &sprite_height);
   bbox = make_shared<SFBoundingBox>(SFBoundingBox(Vector2(0.0f, 0.0f), sprite_width, sprite_height));
-
 }
 
 SFGUI::SFGUI(const SFGUI& a) {
@@ -81,20 +78,24 @@ SFGUIId SFGUI::GetId() {
     return id;
 }
 
+int SFGUI::GetWidth(){
+  return sprite_width;
+}
+
 void SFGUI::SetText(string s){
-  text.reset();
-  text = make_shared<string>(s);
+  //couldnt get around this another way? SDL doesnt like supporting dynamic text
+  SDL_Surface *textbox;
+  const char * str = s.c_str();
+  textbox = TTF_RenderText_Solid(font, str, text_color);
+  sprite = SDL_CreateTextureFromSurface(sf_window->getRenderer(),textbox);
+
+  // resets bbox so it displays correctly
+  SDL_QueryTexture(sprite, NULL, NULL, &sprite_width, &sprite_height);
+  bbox = make_shared<SFBoundingBox>(SFBoundingBox(Vector2(GetPosition().getX(),GetPosition().getY()), sprite_width, sprite_height));
+  SDL_FreeSurface(textbox);
 }
 
 void SFGUI::OnRender() {
-  //couldnt get around this another way? SDL doesnt like supporting dynamic text
-  SDL_Surface *textbox;
-  const char * s = text->c_str();
-  if(type == SFGUI_TEXTBOX){
-    textbox = TTF_RenderText_Solid(font, s, text_color);
-    sprite = SDL_CreateTextureFromSurface(sf_window->getRenderer(),textbox);
-  }
-
   // 1. Get the SDL_Rect from SFBoundingBox
   SDL_Rect rect;
 
@@ -107,6 +108,4 @@ void SFGUI::OnRender() {
 
   // 2. Blit the sprite onto the level
   SDL_RenderCopy(sf_window->getRenderer(), sprite, NULL, &rect);
-  SDL_FreeSurface(textbox);
-  //delete s;
 }

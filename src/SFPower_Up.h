@@ -18,12 +18,16 @@ using namespace std;
 #include "SFAsset.h"
 
 
-enum POWERTYPE {POWER_HEALTH,POWER_WALL,POWER_BULLETS,POWER_SHIELD};
+enum POWERTYPE {POWER_HEALTH,POWER_WALL,POWER_BULLETS};
 
 class SFPower_Up : public SFAsset{
 public:
   SFPower_Up(POWERTYPE type,const std::shared_ptr<SFWindow>);
   virtual ~SFPower_Up();
+  POWERTYPE GetType();
+
+private:
+  POWERTYPE type;
 };
 
 

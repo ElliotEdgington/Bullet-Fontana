@@ -55,11 +55,11 @@ protected:
   SFAssetId                   id;
   std::shared_ptr<SFWindow>   sf_window;
 
-  float move_speed;
-  int health;
-  int sprite_width;
-  int sprite_height;
-  bool alive;
+  float                        move_speed;
+  int                          health;
+  int                          sprite_width;
+  int                          sprite_height;
+  bool                         alive;
 
 private:
   static int SFASSETID;

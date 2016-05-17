@@ -25,6 +25,7 @@ public:
   virtual ~SFBasic_Enemy();
   void UpdateMovement();
   void SetPosition(Point2 &);
+  ENEMYTYPE GetType();
 
 private:
   ENEMYTYPE   type;

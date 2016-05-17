@@ -1,11 +1,13 @@
 #include "SFApp.h"
 
-SFApp::SFApp(std::shared_ptr<SFWindow> window) : fire(0), is_running(true), sf_window(window),
-						 P_UP(false), P_DOWN(false), P_LEFT(false),
-						 P_RIGHT(false), P_SHOOT(false), P_FIRE(false),
-						 fire_delay(20)
+SFApp::SFApp(std::shared_ptr<SFWindow> window) :
+ 						fire(0), is_running(true), sf_window(window),
+						P_UP(false), P_DOWN(false), P_LEFT(false),
+						P_RIGHT(false), P_SHOOT(false), P_FIRE(false),
+						fire_timer(20),power_timer(20), score(0),
+						gun_power(false), wall_power(2)
+						{
 
-{
   int canvas_w, canvas_h;
   SDL_GetRendererOutputSize(sf_window->getRenderer(), &canvas_w, &canvas_h);
 
@@ -17,33 +19,26 @@ SFApp::SFApp(std::shared_ptr<SFWindow> window) : fire(0), is_running(true), sf_w
   auto player_pos = Point2(canvas_w/2, 22);
   player->SetPosition(player_pos);
 
+	//creating the scoreText
+	scoreText = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
+	AddToScore(0);
+	auto scoreText_pos = Point2((canvas_w+50-scoreText->GetWidth()),canvas_h - 20);
+	scoreText->SetPosition(scoreText_pos);
 
 //turn this into waves in the future. ----------------------------
-  // const int number_of_aliens = 10;
-  // for(int i=0; i<number_of_aliens; i++) {
-  //   // place an alien at width/number_of_aliens * i
-  //   auto alien = make_shared<SFAsset>(SFASSET_ALIEN, sf_window);
-  //   auto pos   = Point2((canvas_w/number_of_aliens) * i, 200.0f);
-  //   alien->SetPosition(pos);
-  //   aliens.push_back(alien);
-  // }
+
 
 	auto alien = make_shared<SFBasic_Enemy>(E_WAVE,sf_window);
 	auto pos = Point2(canvas_w/2, canvas_h);
 	alien->SetPosition(pos);
 	aliens.push_back(alien);
+
   // auto coin = make_shared<SFAsset>(SFASSET_COIN, sf_window);
   // auto pos  = Point2((canvas_w/4), 100);
   // coin->SetPosition(pos);
   // coins.push_back(coin);
 
 	//gui texture test.
-  auto GUITEST = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
-	auto posGUI = Point2((3*canvas_w/4),canvas_h - 10);
-	GUITEST->SetPosition(posGUI);
-	string text ("Score = 1002920");
-	GUITEST->SetText(text);
-	GUI.push_back(GUITEST);
 }
 
 SFApp::~SFApp() {
@@ -115,15 +110,29 @@ int SFApp::OnExecute() {
 
 void SFApp::OnUpdateWorld() {
   PlayerMovement();
-	fire_delay++;
+
+	//increment timers;
+	fire_timer++;
+	//12 second power duration
+	if(gun_power && power_timer < 60*12){
+		power_timer++;
+	}else{
+		gun_power = false;
+		power_timer = 0;
+	}
 
   // Update projectile positions
-  for(auto p: projectiles) {
+  for(auto p: e_projectiles) {
     p->UpdateMovement();
   }
 
-  for(auto c: coins) {
-    c->GoNorth();
+	for(auto p: p_projectiles) {
+		p->UpdateMovement();
+	}
+
+
+  for(auto c: power_ups) {
+    c->GoSouth();
   }
 
   // Update enemy positions
@@ -132,63 +141,143 @@ void SFApp::OnUpdateWorld() {
   }
 
   // Detect collisions
-  for(auto p : projectiles) {
+  for(auto p : p_projectiles) {
     for(auto a : aliens) {
       if(p->CollidesWith(a)) {
         p->HandleCollision();
         a->HandleCollision();
       }
     }
+	}
+	//enemy projectile -> player / wall collision
+	for(auto p : e_projectiles) {
+		if(p->CollidesWith(player)){
+      p->HandleCollision();
+      player->HandleCollision();
+    }
+		//wall collision /w enemy projectile
 		for(auto w : walls){
 			if(p->CollidesWith(w)){
 				p->HandleCollision();
+				w->HandleCollision();
 			}
 		}
   }
 
+	//Power_Up -> player collision;
+	for(auto c : power_ups){
+		if(c->CollidesWith(player)){
+			c->HandleCollision();
+		}
+	}
+
   // remove dead aliens (the long way)
+	// Also add score on death / death projectiles
   list<shared_ptr<SFBasic_Enemy>> tmp_a;
   for(auto a : aliens) {
     if(a->IsAlive()) {
       tmp_a.push_back(a);
     }else{
-			//CreateExplosion(a->GetPosition());
+			switch(a->GetType()){
+				case E_STRAIGHT:
+					AddToScore(500);
+					break;
+				case E_WAVE:
+					AddToScore(1000);
+					break;
+				case E_DIAGONAL_LEFT:
+				case E_DIAGONAL_RIGHT:
+					AddToScore(750);
+					break;
+			}
+			CreateExplosion(a->GetPosition());
 			FireAt(a->GetPosition(),player->GetPosition());
+			DropPowerUp(a->GetPosition(),POWER_WALL);
 		}
   }
   aliens.clear();
   aliens = list<shared_ptr<SFBasic_Enemy>>(tmp_a);
 
+
+	// remove used power_ups
+	// also addscore / give player powerup.
+	list<shared_ptr<SFPower_Up>> tmp_c;
+	for(auto c : power_ups) {
+		if(c->IsAlive()) {
+			tmp_c.push_back(c);
+		}else{
+			switch(c->GetType()){
+				case POWER_HEALTH:
+					player->AddHealth(10);
+					break;
+				case POWER_WALL:
+					wall_power +=1;
+					break;
+				case POWER_BULLETS:
+					gun_power = true;
+					break;
+			}
+		}
+	}
+	power_ups.clear();
+	power_ups = list<shared_ptr<SFPower_Up>>(tmp_c);
+
+
+
+	//remove dead walls
+	list<shared_ptr<SFWall>> tmp_w;
+	for(auto w : walls) {
+		if(w->IsAlive()) tmp_w.push_back(w);
+	}
+	walls.clear();
+	walls = list<shared_ptr<SFWall>>(tmp_w);
+
 	//remove projectiles that have collided
 	list<shared_ptr<SFProjectile>> tmp_p;
-  for(auto p : projectiles) {
+  for(auto p : e_projectiles) {
     if(p->IsAlive()) {
       tmp_p.push_back(p);
     }
   }
-  projectiles.clear();
-  projectiles = list<shared_ptr<SFProjectile>>(tmp_p);
+  e_projectiles.clear();
+  e_projectiles = list<shared_ptr<SFProjectile>>(tmp_p);
+
+	tmp_p.clear();
+	for(auto p : p_projectiles) {
+		if(p->IsAlive()) {
+			tmp_p.push_back(p);
+		}
+	}
+	p_projectiles.clear();
+	p_projectiles = list<shared_ptr<SFProjectile>>(tmp_p);
 }
 
 void SFApp::OnRender() {
   SDL_RenderClear(sf_window->getRenderer());
 
+	//SINGLE Entities (not in list)
   // draw the player
   player->OnRender();
+	scoreText->OnRender();
 
+
+	//LIST Entities (in list)
 	for(auto g: GUI){
 		g->OnRender();
 	}
 
-  for(auto p: projectiles) {
+  for(auto p: e_projectiles) {
     if(p->IsAlive()) {p->OnRender();}
   }
+	for(auto p: p_projectiles) {
+		if(p->IsAlive()) {p->OnRender();}
+	}
 
   for(auto a: aliens) {
     if(a->IsAlive()) {a->OnRender();}
   }
 
-  for(auto c: coins) {
+  for(auto c: power_ups) {
     c->OnRender();
   }
 
@@ -219,10 +308,11 @@ void SFApp::PlayerMovement(){
 	}
 
 	if(P_FIRE){
-		if(fire_delay > 5){
+		//every 8/60 second
+		if(fire_timer > 8){
 			fire ++;
 			FireProjectile();
-			fire_delay = 0;
+			fire_timer = 0;
 		}
 	}
 
@@ -230,24 +320,40 @@ void SFApp::PlayerMovement(){
 
 //fires 2 projectiles instead of 1
 void SFApp::FireProjectile() {
+	float playerX  = player->GetPosition().getX();
+	float playerY = player->GetPosition().getY();
+
   auto pb1 = make_shared<SFProjectile>(P_PLAYER,sf_window);
 	auto pb2 = make_shared<SFProjectile>(P_PLAYER,sf_window);
-  float playerX  = player->GetPosition().getX();
-	float playerY = player->GetPosition().getY();
+
 	Point2 bulletPos1 = Point2(playerX+25.0f,playerY+25.0f);
 	Point2 bulletPos2 = Point2(playerX-25.0f,playerY+25.0f);
   pb1->SetPosition(bulletPos1);
 	pb2->SetPosition(bulletPos2);
-  projectiles.push_back(pb1);
-	projectiles.push_back(pb2);
+  p_projectiles.push_back(pb1);
+	p_projectiles.push_back(pb2);
+	//If under gun_power mode, add more projectiles!
+	if(gun_power){
+		auto pb3 = make_shared<SFProjectile>(P_PLAYER,sf_window);
+		auto pb4 = make_shared<SFProjectile>(P_PLAYER,sf_window);
+		Point2 bulletPos3 = Point2(playerX+40.0f,playerY+25.0f);
+		Point2 bulletPos4 = Point2(playerX-40.0f,playerY+25.0f);
+	  pb3->SetPosition(bulletPos3);
+		pb4->SetPosition(bulletPos4);
+	  p_projectiles.push_back(pb3);
+		p_projectiles.push_back(pb4);
+	}
 }
 
 // limit this to a powerup to place limited walls
 void SFApp::PlaceWall() {
-	auto wall = make_shared<SFWall>(sf_window);
-	auto pos_wall = Point2(player->GetPosition().getX(),player->GetPosition().getY()+50);
-	wall->SetPosition(pos_wall);
-	walls.push_back(wall);
+	if(wall_power > 0){
+		auto wall = make_shared<SFWall>(sf_window);
+		auto pos_wall = Point2(player->GetPosition().getX(),player->GetPosition().getY()+50);
+		wall->SetPosition(pos_wall);
+		walls.push_back(wall);
+		wall_power--;
+	}
 }
 
 
@@ -261,6 +367,25 @@ bool SFApp::HitWall(){
 	return false;
 }
 
+void SFApp::AddToScore(int s){
+	score += s;
+	string text = to_string(s);
+	string zeros("");
+	for(int i = text.size(); i < 8 ; i++){
+		zeros += "0";
+	}
+	scoreText->SetText(zeros+text);
+}
+
+
+void SFApp::DropPowerUp(Point2 pos,POWERTYPE t){
+	auto c = make_shared<SFPower_Up>(t,sf_window);
+	c->SetPosition(pos);
+	power_ups.push_back(c);
+}
+
+
+
 // some projectile paths for when enemies shooting or die.
 // ideally would have liked this to be its own class but time constrains yo.
 void SFApp::CreateExplosion(Point2 point){
@@ -270,15 +395,13 @@ void SFApp::CreateExplosion(Point2 point){
 		auto p = make_shared<SFProjectile>(P_ENEMY_ROUND,sf_window);
 		p->SetPosition(point);
 		p->SetDirection(rotation);
-		projectiles.push_back(p);
+		e_projectiles.push_back(p);
 		//rotating the vector 45 degrees
 		rotation = Vector2(
 			rotation.getX()*cos(M_PI_4)-rotation.getY()*sin(M_PI_4),
 			rotation.getX()*sin(M_PI_4)+rotation.getY()*cos(M_PI_4));
 	}
 }
-
-
 
 void SFApp::FireAt(Point2 pos1, Point2 pos2){
 	//needed to normalise the vector
@@ -289,5 +412,5 @@ void SFApp::FireAt(Point2 pos1, Point2 pos2){
 	auto p = make_shared<SFProjectile>(P_ENEMY_ROUND,sf_window);
 	p->SetPosition(pos1);
 	p->SetDirection(dir);
-	projectiles.push_back(p);
+	e_projectiles.push_back(p);
 }

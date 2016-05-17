@@ -32,6 +32,7 @@ public:
   virtual void      SetPosition(Point2 &);
   virtual Point2    GetPosition();
   virtual SFGUIId   GetId();
+  virtual int      GetWidth();
   virtual void      SetText(string);
   virtual void      OnRender();
 
@@ -46,7 +47,6 @@ private:
   SDL_Texture               * sprite;
   TTF_Font                  * font;
   SDL_Color                   text_color;
-  shared_ptr<string>          text;
   shared_ptr<SFBoundingBox>   bbox;
   SFGUITYPE                   type;
   SFGUIId                     id;
