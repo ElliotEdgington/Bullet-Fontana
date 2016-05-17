@@ -2,31 +2,28 @@
 
 SFBasic_Enemy::SFBasic_Enemy(ENEMYTYPE type, std::shared_ptr<SFWindow> window) :
                                         SFAsset(window), startPos(Point2(0,0)),
-                                        direction(1), waver(0){
-  sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
+                                        direction(1), waver(0), type(type), killed(true){
   move_speed = 3.5f;
   health = 3;
-  this->type = type;
-
   switch (type) {
   case E_STRAIGHT:
     sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
-    move_speed = 3.0f;
-    health = 10;
+    move_speed = 1.0f;
+    health = 6;
     break;
   case E_WAVE:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
-    move_speed = 0.0f;
-    health = 20;
+    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
+    move_speed = 1.0f;
+    health = 12;
     waver = 50;
     break;
   case E_DIAGONAL_LEFT:
     sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
-    move_speed = 2.5f;
+    move_speed = 1.5f;
     health = 5;
   case E_DIAGONAL_RIGHT:
     sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
-    move_speed = 2.5f;
+    move_speed = 1.5f;
     health = 5;
     break;
   }
@@ -61,6 +58,12 @@ void SFBasic_Enemy::UpdateMovement(){
     break;
   }
 
+  //enemies get deleted once they go off the bottom of the screen.
+  //-10 is a buffer to make sure theyre 100% off screen
+  if(GetPosition().getY() < -10){
+     SetNotAlive();
+     killed = false;
+   }
 }
 
 void SFBasic_Enemy::SetPosition(Point2 & point) {
@@ -71,4 +74,10 @@ void SFBasic_Enemy::SetPosition(Point2 & point) {
 
 ENEMYTYPE SFBasic_Enemy::GetType(){
   return type;
+}
+
+// killed is used to determine whether the player killed the enemy
+// or the enemy just despawned off screen
+bool SFBasic_Enemy::GetKilled(){
+  return killed;
 }

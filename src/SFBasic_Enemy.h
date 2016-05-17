@@ -26,12 +26,14 @@ public:
   void UpdateMovement();
   void SetPosition(Point2 &);
   ENEMYTYPE GetType();
+  bool GetKilled();
 
 private:
   ENEMYTYPE   type;
   Point2      startPos;
   int         direction;
   int         waver;
+  bool        killed;
 };
 
 

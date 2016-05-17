@@ -10,10 +10,10 @@ SFApp::SFApp(std::shared_ptr<SFWindow> window) :
 
   int canvas_w, canvas_h;
   SDL_GetRendererOutputSize(sf_window->getRenderer(), &canvas_w, &canvas_h);
-
 	//making application bounding box
   app_box = make_shared<SFBoundingBox>(Vector2(canvas_w, canvas_h), canvas_w, canvas_h);
-
+	//make level creator
+	wave_get = make_shared<SFWave>(sf_window,canvas_w,canvas_h);
 	//creating the player.
 	player  = make_shared<SFPlayer>(sf_window);
   auto player_pos = Point2(canvas_w/2, 22);
@@ -25,24 +25,12 @@ SFApp::SFApp(std::shared_ptr<SFWindow> window) :
 	auto scoreText_pos = Point2((canvas_w+50-scoreText->GetWidth()),canvas_h - 20);
 	scoreText->SetPosition(scoreText_pos);
 
-//turn this into waves in the future. ----------------------------
+	//getting a starting wave
+	aliens = list<shared_ptr<SFBasic_Enemy>>(wave_get->GetWave(1));
 
-
-	auto alien = make_shared<SFBasic_Enemy>(E_WAVE,sf_window);
-	auto pos = Point2(canvas_w/2, canvas_h);
-	alien->SetPosition(pos);
-	aliens.push_back(alien);
-
-  // auto coin = make_shared<SFAsset>(SFASSET_COIN, sf_window);
-  // auto pos  = Point2((canvas_w/4), 100);
-  // coin->SetPosition(pos);
-  // coins.push_back(coin);
-
-	//gui texture test.
 }
 
-SFApp::~SFApp() {
-}
+SFApp::~SFApp() {}
 
 /**
  * Handle all events that come from SDL.
@@ -177,7 +165,7 @@ void SFApp::OnUpdateWorld() {
   for(auto a : aliens) {
     if(a->IsAlive()) {
       tmp_a.push_back(a);
-    }else{
+    }else if(a->GetKilled()){
 			switch(a->GetType()){
 				case E_STRAIGHT:
 					AddToScore(500);
@@ -192,11 +180,12 @@ void SFApp::OnUpdateWorld() {
 			}
 			CreateExplosion(a->GetPosition());
 			FireAt(a->GetPosition(),player->GetPosition());
-			DropPowerUp(a->GetPosition(),POWER_WALL);
+			//DropPowerUp(a->GetPosition(),POWER_WALL);
 		}
   }
   aliens.clear();
   aliens = list<shared_ptr<SFBasic_Enemy>>(tmp_a);
+	CheckWave();
 
 
 	// remove used power_ups
@@ -221,6 +210,7 @@ void SFApp::OnUpdateWorld() {
 	}
 	power_ups.clear();
 	power_ups = list<shared_ptr<SFPower_Up>>(tmp_c);
+
 
 
 
@@ -369,7 +359,7 @@ bool SFApp::HitWall(){
 
 void SFApp::AddToScore(int s){
 	score += s;
-	string text = to_string(s);
+	string text = to_string(score);
 	string zeros("");
 	for(int i = text.size(); i < 8 ; i++){
 		zeros += "0";
@@ -384,6 +374,10 @@ void SFApp::DropPowerUp(Point2 pos,POWERTYPE t){
 	power_ups.push_back(c);
 }
 
+void SFApp::CheckWave(){
+	if(aliens.empty()){
+	}
+}
 
 
 // some projectile paths for when enemies shooting or die.

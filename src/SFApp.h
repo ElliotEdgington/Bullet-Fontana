@@ -14,6 +14,7 @@ using namespace std;
 #include "SFEvent.h"
 #include "SFAsset.h"
 #include "SFGUI.h"
+#include "SFWave.h"
 //including entities
 #include "SFPlayer.h"
 #include "SFPower_Up.h"
@@ -44,15 +45,17 @@ private:
   void    FireAt(Point2,Point2);
   void    AddToScore(int);
   void    DropPowerUp(Point2, POWERTYPE);
+  void    CheckWave();
 
   //variables
 private:
   bool                                is_running;
   shared_ptr<SFWindow>                sf_window;
+  shared_ptr<SFBoundingBox>           app_box;
+  shared_ptr<SFWave>                  wave_get;
 
   shared_ptr<SFPlayer>                player;
   shared_ptr<SFGUI>                   scoreText;
-  shared_ptr<SFBoundingBox>           app_box;
   //Split enemy and player projectile so collision doesnt have to loop through
   //unnecessary projectiles.(eg player hitting player projectiles)
   list<shared_ptr<SFProjectile> >     e_projectiles;
