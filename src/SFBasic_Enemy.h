@@ -17,7 +17,7 @@ using namespace std;
 #include "SFMath.h"
 #include "SFAsset.h"
 
-enum ENEMYTYPE {E_STRAIGHT, E_WAVE ,E_DIAGONAL_RIGHT,E_DIAGONAL_LEFT, E_LARGE};
+enum ENEMYTYPE {E_STRAIGHT, E_STRAIGHT_SLOW, E_WAVE ,E_DIAGONAL_RIGHT,E_DIAGONAL_LEFT, E_LARGE};
 
 class SFBasic_Enemy : public SFAsset{
 public:
@@ -34,6 +34,7 @@ private:
   int         direction;
   int         waver;
   bool        killed;
+  bool        loop;
 };
 
 

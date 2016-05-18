@@ -18,7 +18,7 @@ using namespace std;
 #include "SFAsset.h"
 
 
-enum POWERTYPE {POWER_HEALTH,POWER_WALL,POWER_BULLETS};
+enum POWERTYPE {POWER_HEALTH,POWER_WALL,POWER_BULLETS,POWER_NONE};
 
 class SFPower_Up : public SFAsset{
 public:

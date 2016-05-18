@@ -5,16 +5,27 @@ SFProjectile::SFProjectile(BULLETTYPE type ,std::shared_ptr<SFWindow> window) :
   move_speed = 7.0f;
   health = 1;
   this->type = type;
+
+  //A few unused types here for expansion purposes.
   switch (type) {
-  case P_PLAYER:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/projectile.png");
-    break;
-  case P_ENEMY_LONG:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
-    break;
-  case P_ENEMY_ROUND:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
-    move_speed = 1.0f;
+    case P_PLAYER:
+      sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/playerbullet.png");
+      break;
+    case P_EXPLOSION:
+      move_speed = 1.0f;
+      sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/projectile_explosion.png");
+      break;
+    case P_FIREAT:
+      sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/projectile_FireAt.png");
+      move_speed = 1.0f;
+      break;
+    case P_SPRAY:
+      sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/projectile_spray.png");
+      move_speed = 1.0f;
+      break;
+    case P_ANGLE:
+      sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/projectile_FireRandom.png");
+      move_speed = 1.0f;
     break;
   }
 
@@ -24,16 +35,10 @@ SFProjectile::SFProjectile(BULLETTYPE type ,std::shared_ptr<SFWindow> window) :
 SFProjectile::~SFProjectile(){}
 
 void SFProjectile::UpdateMovement(){
-  switch (type) {
-  case P_PLAYER:
+  if(type == P_PLAYER){
     GoNorth();
-    break;
-  case P_ENEMY_LONG:
-    GoSouth();
-    break;
-  case P_ENEMY_ROUND:
+  }else{
     GoDirection(initialDirection);
-    break;
   }
   //checks if off screen
   int w, h;

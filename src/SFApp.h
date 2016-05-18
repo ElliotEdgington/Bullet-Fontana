@@ -49,6 +49,7 @@ private:
 
   void    AddProjectiles(list<shared_ptr<SFProjectile>>);
   void    DropPowerUp(Point2, POWERTYPE);
+  POWERTYPE RandomPowerUp(int);
   void    CheckWave();
 
   //On Lose and on Win

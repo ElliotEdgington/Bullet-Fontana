@@ -17,7 +17,7 @@ using namespace std;
 #include "SFMath.h"
 #include "SFAsset.h"
 
-enum BULLETTYPE {P_PLAYER,P_ENEMY_LONG, P_ENEMY_ROUND};
+enum BULLETTYPE {P_PLAYER,P_EXPLOSION,P_FIREAT,P_ANGLE,P_SPRAY};
 
 class SFProjectile : public SFAsset{
 public:

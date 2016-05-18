@@ -20,6 +20,7 @@ int SFPlayer::GetHealth(){
 }
 
 //overriding movement so I can add limitations.
+//Collisions with sides.
 
 void SFPlayer::GoNorth(){
   int w, h;

@@ -37,7 +37,7 @@ SFError InitGraphics() {
   }
 
   // Create a new window
-  g_window = SDL_CreateWindow("StarShip Fontana"
+  g_window = SDL_CreateWindow("Bullet Fontana"
                             , SDL_WINDOWPOS_CENTERED
                             , SDL_WINDOWPOS_CENTERED
                             , width
@@ -60,6 +60,7 @@ SFError InitGraphics() {
   return SF_ERROR_NONE;
 }
 
+//have to initialise TFF before use.
 SFError InitTTF(){
   if(TTF_Init() == -1){
     cerr << "Failed to initialise text renderer" << SDL_GetError() << endl;

@@ -3,6 +3,7 @@
 
 /**
  * Effectively wraps an SDL_Event in our custom event type.
+ * Added more keybindings, also KeyDown and KeyUp to get when the action happens.
  */
 SFEvent::SFEvent(const SDL_Event & event) {
   switch (event.type) {
@@ -32,9 +33,11 @@ SFEvent::SFEvent(const SDL_Event & event) {
       break;
     case SDLK_RSHIFT:
     case SDLK_e:
+    case SDLK_x:
       code = SFEVENT_WALL;
       break;
     case SDLK_SPACE:
+    case SDLK_z:
       code = SFEVENT_FIRE_KEYDOWN;
       break;
     case SDLK_q:
@@ -61,6 +64,7 @@ SFEvent::SFEvent(const SDL_Event & event) {
       code = SFEVENT_PLAYER_RIGHT_KEYUP;
       break;
     case SDLK_SPACE:
+    case SDLK_z:
       code = SFEVENT_FIRE_KEYUP;
       break;
     }

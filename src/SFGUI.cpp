@@ -18,12 +18,15 @@ SFGUI::SFGUI(SFGUITYPE type, std::shared_ptr<SFWindow> window):
 
 
   color = {0,0,0};
+  // For SFGUI_BAR and SFGUI_TEXTBOX is a really messy way of creating a filled rectangle
+  // and a box that text can go in.
+  // They both use surfaces which are then transformed into textures which can be stored in sprite
   switch (type) {
   case SFGUI_WIN:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
+    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/win.png");
     break;
   case SFGUI_LOSE:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
+    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/lose.png");
     break;
   case SFGUI_BAR:
     SDL_Surface *rect;
@@ -85,6 +88,7 @@ int SFGUI::GetWidth(){
   return sprite_width;
 }
 
+//sets new width of rectangle
 void SFGUI::SetWidth(int w){
   SDL_Surface *rect;
   rect = SDL_CreateRGBSurface(0,w,10,32,0,0,0,0);
@@ -97,7 +101,7 @@ void SFGUI::SetWidth(int w){
 }
 
 
-
+//sets new text of string and resizes the render box
 void SFGUI::SetText(string s){
   //couldnt get around this another way? SDL doesnt like supporting dynamic text
   SDL_Surface *textbox;

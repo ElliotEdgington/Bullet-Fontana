@@ -39,7 +39,7 @@ void SFAsset::LoadSprite(){
  * that there is a 1-to-1 quantisation.
  */
 
-
+//set position is useful for creating waves of enemies
 void SFAsset::SetPosition(Point2 & point) {
   Vector2 v(point.getX(), point.getY());
   bbox->SetCentre(v);

@@ -6,7 +6,7 @@ SFBoss::SFBoss(shared_ptr<SFWindow> window,shared_ptr<SFPattern> pattern_get, sh
                     phase(0), sub_phase(0), p_dir(0){
   health = 100;
   move_speed = 1.0f;
-  sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
+  sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien_boss.png");
   LoadSprite();
 
 }
@@ -41,15 +41,21 @@ int SFBoss::GetHealth(){
   return health;
 }
 
+
+//sets health, and resets alive
 void SFBoss::SetHealth(int h){
   health = h;
   alive = true;
 }
+
+//sets boss phase
 void SFBoss::SetPhase(int p){
   phase = p;
 }
 
 
+//each phase the boss creates different bullet patterns.
+//phase increments after each boss kill.
 
 list <shared_ptr<SFProjectile>> SFBoss::Phase1(){
   list<shared_ptr<SFProjectile>> bullets;
@@ -91,7 +97,7 @@ list <shared_ptr<SFProjectile>> SFBoss::Phase2(){
 list <shared_ptr<SFProjectile>> SFBoss::Phase3(){
   list<shared_ptr<SFProjectile>> bullets;
   //every second
-  if(phase_timer%(45*1) == 0){
+  if(phase_timer%(60*1) == 0){
     bullets.splice(bullets.end(),pattern->CreateExplosion(GetPosition(),p_dir));
     AddRotation(30);
   }
@@ -100,13 +106,14 @@ list <shared_ptr<SFProjectile>> SFBoss::Phase3(){
     bullets.splice(bullets.end(),pattern->CreateExplosion(GetPosition(),0));
   }
   //
-  if(phase_timer%(60*1) == 0){
+  if(phase_timer%(45*2) == 0){
     bullets.splice(bullets.end(),pattern->SprayAt(GetPosition(),player->GetPosition()));
   }
 
   return bullets;
 }
 
+//used for the rotating bullets during the boss phase.
 void SFBoss::AddRotation(int a){
   p_dir += a;
   if(p_dir >= 360) p_dir -=360;
