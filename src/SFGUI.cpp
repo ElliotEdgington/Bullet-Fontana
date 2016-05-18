@@ -2,6 +2,8 @@
 
 int SFGUI::SFGUIID=0;
 
+//this class was originally going to be for images on screen to tell story
+//but run out of time so im repurposing it to text/rect class
 SFGUI::SFGUI(SFGUITYPE type, std::shared_ptr<SFWindow> window):
                                         type(type), sf_window(window),
                                         sprite_width(0), sprite_height(0)
@@ -15,23 +17,24 @@ SFGUI::SFGUI(SFGUITYPE type, std::shared_ptr<SFWindow> window):
   }
 
 
-  text_color = {0,0,0};
+  color = {0,0,0};
   switch (type) {
-  case SFGUI_FISH:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
-    break;
-  case SFGUI_GIRL:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
-    break;
-  case SFGUI_SCORE:
+  case SFGUI_WIN:
     sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
     break;
-  case SFGUI_PIRATE:
-    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/player.png");
+  case SFGUI_LOSE:
+    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
+    break;
+  case SFGUI_BAR:
+    SDL_Surface *rect;
+    rect = SDL_CreateRGBSurface(0,400,10,32,0,0,0,0);
+    SDL_FillRect(rect, NULL, SDL_MapRGB(rect->format, 235, 0, 0));
+    sprite = SDL_CreateTextureFromSurface(sf_window->getRenderer(),rect);
+    SDL_FreeSurface(rect);
     break;
   case SFGUI_TEXTBOX:
     SDL_Surface *textbox;
-    textbox = TTF_RenderText_Solid(font, "text not set", text_color);
+    textbox = TTF_RenderText_Solid(font, "text not set", color);
     sprite = SDL_CreateTextureFromSurface(sf_window->getRenderer(),textbox);
     SDL_FreeSurface(textbox);
     break;
@@ -82,11 +85,24 @@ int SFGUI::GetWidth(){
   return sprite_width;
 }
 
+void SFGUI::SetWidth(int w){
+  SDL_Surface *rect;
+  rect = SDL_CreateRGBSurface(0,w,10,32,0,0,0,0);
+  SDL_FillRect(rect, NULL, SDL_MapRGB(rect->format, 235, 0, 0));
+  sprite = SDL_CreateTextureFromSurface(sf_window->getRenderer(),rect);
+  SDL_FreeSurface(rect);
+
+  SDL_QueryTexture(sprite, NULL, NULL, &sprite_width, &sprite_height);
+  bbox = make_shared<SFBoundingBox>(SFBoundingBox(Vector2(GetPosition().getX(),GetPosition().getY()), sprite_width, sprite_height));
+}
+
+
+
 void SFGUI::SetText(string s){
   //couldnt get around this another way? SDL doesnt like supporting dynamic text
   SDL_Surface *textbox;
   const char * str = s.c_str();
-  textbox = TTF_RenderText_Solid(font, str, text_color);
+  textbox = TTF_RenderText_Solid(font, str, color);
   sprite = SDL_CreateTextureFromSurface(sf_window->getRenderer(),textbox);
 
   // resets bbox so it displays correctly

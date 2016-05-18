@@ -21,7 +21,7 @@ using namespace std;
 
 /**
 */
-enum SFGUITYPE {SFGUI_SCORE, SFGUI_FISH, SFGUI_PIRATE, SFGUI_GIRL,SFGUI_TEXTBOX};
+enum SFGUITYPE {SFGUI_TEXTBOX, SFGUI_BAR,SFGUI_LOSE,SFGUI_WIN};
 
 class SFGUI {
 public:
@@ -32,7 +32,8 @@ public:
   virtual void      SetPosition(Point2 &);
   virtual Point2    GetPosition();
   virtual SFGUIId   GetId();
-  virtual int      GetWidth();
+  virtual int       GetWidth();
+  virtual void      SetWidth(int);
   virtual void      SetText(string);
   virtual void      OnRender();
 
@@ -46,7 +47,7 @@ private:
   // that's a little too much right now)
   SDL_Texture               * sprite;
   TTF_Font                  * font;
-  SDL_Color                   text_color;
+  SDL_Color                   color;
   shared_ptr<SFBoundingBox>   bbox;
   SFGUITYPE                   type;
   SFGUIId                     id;

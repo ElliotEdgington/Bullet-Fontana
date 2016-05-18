@@ -17,7 +17,7 @@ using namespace std;
 #include "SFMath.h"
 #include "SFAsset.h"
 
-enum ENEMYTYPE {E_STRAIGHT, E_WAVE ,E_DIAGONAL_RIGHT,E_DIAGONAL_LEFT};
+enum ENEMYTYPE {E_STRAIGHT, E_WAVE ,E_DIAGONAL_RIGHT,E_DIAGONAL_LEFT, E_LARGE};
 
 class SFBasic_Enemy : public SFAsset{
 public:

@@ -26,6 +26,11 @@ SFBasic_Enemy::SFBasic_Enemy(ENEMYTYPE type, std::shared_ptr<SFWindow> window) :
     move_speed = 1.5f;
     health = 5;
     break;
+  case E_LARGE:
+    sprite = IMG_LoadTexture(sf_window->getRenderer(), "assets/alien.png");
+    move_speed = 0.2f;
+    health = 50;
+    break;
   }
 
   LoadSprite();

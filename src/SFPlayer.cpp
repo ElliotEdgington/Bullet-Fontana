@@ -12,6 +12,11 @@ SFPlayer::~SFPlayer(){}
 void SFPlayer::AddHealth(int h){
   health += h;
   if(health > 100) health = 100;
+  if(health <= 0) SetNotAlive();
+}
+
+int SFPlayer::GetHealth(){
+  return health;
 }
 
 //overriding movement so I can add limitations.
@@ -41,7 +46,7 @@ void SFPlayer::GoEast(){
   SDL_GetRendererOutputSize(sf_window->getRenderer(), &w, &h);
 
   Vector2 c = *(bbox->centre) + Vector2(move_speed, 0.0f);
-  if(!(c.getX() > w - sprite_width/2)) {
+  if(!(c.getX() > w - sprite_width/2)){
     bbox->centre.reset();
     bbox->centre = make_shared<Vector2>(c);
   }

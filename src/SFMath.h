@@ -17,6 +17,7 @@ public:
 
   inline const Vector2 operator +( const Vector2 &) const;
   inline const Vector2 operator *( float) const;
+  inline const Vector2 RotateVector( float);
 
 private:
   float m_x, m_y;
@@ -47,6 +48,14 @@ inline const Vector2 Vector2::operator *( float scalar ) const {
 		 m_y * scalar
 		 );
 }
+
+inline const Vector2 Vector2::RotateVector(float degrees){
+  float rad = degrees*(M_PI/180);
+  return (Vector2(
+    m_x*cos(rad)-m_y*sin(rad),
+    m_x*sin(rad)+m_y*cos(rad)));
+}
+
 
 /**
  * A Point representation somewhat in the style of the IBM/Sony Vectormath library.

@@ -23,6 +23,7 @@ public:
   virtual ~SFPlayer();
 
   void AddHealth(int);
+  int  GetHealth();
   void GoNorth();
   void GoSouth();
   void GoEast();

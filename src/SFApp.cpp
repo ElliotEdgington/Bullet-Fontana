@@ -5,7 +5,7 @@ SFApp::SFApp(std::shared_ptr<SFWindow> window) :
 						P_UP(false), P_DOWN(false), P_LEFT(false),
 						P_RIGHT(false), P_SHOOT(false), P_FIRE(false),
 						fire_timer(20),power_timer(20), score(0),
-						gun_power(false), wall_power(2)
+						gun_power(false), wall_power(2), wave(0)
 						{
 
   int canvas_w, canvas_h;
@@ -14,20 +14,50 @@ SFApp::SFApp(std::shared_ptr<SFWindow> window) :
   app_box = make_shared<SFBoundingBox>(Vector2(canvas_w, canvas_h), canvas_w, canvas_h);
 	//make level creator
 	wave_get = make_shared<SFWave>(sf_window,canvas_w,canvas_h);
-	//creating the player.
+  //make pattern creator
+  pattern_get = make_shared<SFPattern>(sf_window);
+
+  //creating the player.
 	player  = make_shared<SFPlayer>(sf_window);
   auto player_pos = Point2(canvas_w/2, 22);
   player->SetPosition(player_pos);
-
 	//creating the scoreText
 	scoreText = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
 	AddToScore(0);
 	auto scoreText_pos = Point2((canvas_w+50-scoreText->GetWidth()),canvas_h - 20);
 	scoreText->SetPosition(scoreText_pos);
+  GUI.push_back(scoreText);
+
+  //create healthText
+  healthText = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
+  healthText->SetText("Health : 100%");
+  auto healthText_pos = Point2(10+(healthText->GetWidth()/2), canvas_h - 20);
+  healthText->SetPosition(healthText_pos);
+  GUI.push_back(healthText);
+  //create wallsText
+  wallsText = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
+  wallsText->SetText("Walls : 2");
+  auto wallsText_pos = Point2(20+healthText->GetWidth()*1.5,canvas_h - 20);
+  wallsText->SetPosition(wallsText_pos);
+  GUI.push_back(wallsText);
+
 
 	//getting a starting wave
-	aliens = list<shared_ptr<SFBasic_Enemy>>(wave_get->GetWave(1));
+	//aliens = list<shared_ptr<SFBasic_Enemy>>(wave_get->GetWave(1));
+  //testing boss
+  wave = 9;
+  bossWave = false;
+  boss = make_shared<SFBoss>(sf_window,pattern_get,player,canvas_h);
+  auto boss_pos = Point2(canvas_w/2,canvas_h+10);
+  boss->SetPosition(boss_pos);
 
+  bossHealth = make_shared<SFGUI>(SFGUI_BAR,sf_window);
+  auto bossHealth_pos = Point2(canvas_w/2,canvas_h-50);
+  bossHealth->SetWidth(boss->GetHealth()*4);
+  bossHealth->SetPosition(bossHealth_pos);
+
+  //starts the waves up
+  CheckWave();
 }
 
 SFApp::~SFApp() {}
@@ -128,20 +158,34 @@ void SFApp::OnUpdateWorld() {
     a->UpdateMovement();
   }
 
+  //Update boss on boss wave
+  if(bossWave) AddProjectiles(boss->UpdateBoss());
+
   // Detect collisions
   for(auto p : p_projectiles) {
     for(auto a : aliens) {
       if(p->CollidesWith(a)) {
         p->HandleCollision();
         a->HandleCollision();
+        AddToScore(25);
       }
     }
+    if(bossWave){
+      if(p->CollidesWith(boss)){
+        p->HandleCollision();
+        boss->HandleCollision();
+        bossHealth->SetWidth(bossHealth->GetWidth()-4);
+        AddToScore(35);
+      }
+    }
+
 	}
 	//enemy projectile -> player / wall collision
 	for(auto p : e_projectiles) {
 		if(p->CollidesWith(player)){
       p->HandleCollision();
-      player->HandleCollision();
+      player->AddHealth(-5);
+      DisplayStatus();
     }
 		//wall collision /w enemy projectile
 		for(auto w : walls){
@@ -158,6 +202,45 @@ void SFApp::OnUpdateWorld() {
 			c->HandleCollision();
 		}
 	}
+
+  // alien -> player collision
+  // alien -> wall collision
+  for(auto a : aliens){
+    if(a->CollidesWith(player)){
+      a->SetNotAlive();
+      player->AddHealth(-20);
+      DisplayStatus();
+    }
+    for(auto w : walls){
+      if(a->CollidesWith(w)){
+        a->SetNotAlive();
+        w->HandleCollision();
+      }
+    }
+  }
+
+
+  //remove dead player
+  if(!player->IsAlive()){
+    LoseGame();
+  }
+
+
+  //remove dead boss and win Game!!!
+  if(bossWave){
+    if(!boss->IsAlive()){
+      AddToScore(10000);
+      wave++;
+      DropPowerUp(boss->GetPosition(),POWER_WALL);
+      CheckWave();
+      if(wave == 14){
+        bossWave = false;
+        boss.reset();
+        WinGame();
+      }
+    }
+  }
+
 
   // remove dead aliens (the long way)
 	// Also add score on death / death projectiles
@@ -177,16 +260,18 @@ void SFApp::OnUpdateWorld() {
 				case E_DIAGONAL_RIGHT:
 					AddToScore(750);
 					break;
+        case E_LARGE:
+          AddToScore(1500);
+          //AddProjectiles(pattern_get->CreateExplosion(a->GetPosition()));
+          break;
 			}
-			CreateExplosion(a->GetPosition());
-			FireAt(a->GetPosition(),player->GetPosition());
+			//CreateExplosion(a->GetPosition());
+			//AddProjectiles(pattern_get->CreateExplosion(a->GetPosition()));
 			//DropPowerUp(a->GetPosition(),POWER_WALL);
 		}
   }
   aliens.clear();
   aliens = list<shared_ptr<SFBasic_Enemy>>(tmp_a);
-	CheckWave();
-
 
 	// remove used power_ups
 	// also addscore / give player powerup.
@@ -198,9 +283,11 @@ void SFApp::OnUpdateWorld() {
 			switch(c->GetType()){
 				case POWER_HEALTH:
 					player->AddHealth(10);
+          DisplayStatus();
 					break;
 				case POWER_WALL:
 					wall_power +=1;
+          DisplayStatus();
 					break;
 				case POWER_BULLETS:
 					gun_power = true;
@@ -240,28 +327,34 @@ void SFApp::OnUpdateWorld() {
 	}
 	p_projectiles.clear();
 	p_projectiles = list<shared_ptr<SFProjectile>>(tmp_p);
+
 }
 
+//renders from back layer to front layer
 void SFApp::OnRender() {
   SDL_RenderClear(sf_window->getRenderer());
 
 	//SINGLE Entities (not in list)
   // draw the player
-  player->OnRender();
-	scoreText->OnRender();
+  if(player->IsAlive()) player->OnRender();
 
+  if(bossWave){
+     boss->OnRender();
+     bossHealth->OnRender();
+   }
 
 	//LIST Entities (in list)
-	for(auto g: GUI){
-		g->OnRender();
+  for(auto w: walls){
+    w->OnRender();
+  }
+
+  for(auto p: p_projectiles) {
+		if(p->IsAlive()) {p->OnRender();}
 	}
 
   for(auto p: e_projectiles) {
     if(p->IsAlive()) {p->OnRender();}
   }
-	for(auto p: p_projectiles) {
-		if(p->IsAlive()) {p->OnRender();}
-	}
 
   for(auto a: aliens) {
     if(a->IsAlive()) {a->OnRender();}
@@ -271,9 +364,9 @@ void SFApp::OnRender() {
     c->OnRender();
   }
 
-	for(auto w: walls){
-		w->OnRender();
-	}
+  for(auto g: GUI){
+    g->OnRender();
+  }
 
   // Switch the off-screen buffer to be on-screen
   SDL_RenderPresent(sf_window->getRenderer());
@@ -343,6 +436,7 @@ void SFApp::PlaceWall() {
 		wall->SetPosition(pos_wall);
 		walls.push_back(wall);
 		wall_power--;
+    DisplayStatus();
 	}
 }
 
@@ -357,6 +451,7 @@ bool SFApp::HitWall(){
 	return false;
 }
 
+// display to GUI functions
 void SFApp::AddToScore(int s){
 	score += s;
 	string text = to_string(score);
@@ -367,6 +462,16 @@ void SFApp::AddToScore(int s){
 	scoreText->SetText(zeros+text);
 }
 
+void SFApp::DisplayStatus(){
+  healthText->SetText("Health : " + to_string(player->GetHealth()) + "%");
+  wallsText->SetText("Walls : " + to_string(wall_power));
+}
+
+//dont have another param here because player doesnt have
+//cool projectile patterns so only need to append e_projectiles
+void SFApp::AddProjectiles(list<shared_ptr<SFProjectile>> add){
+  e_projectiles.splice(e_projectiles.end(),add);
+}
 
 void SFApp::DropPowerUp(Point2 pos,POWERTYPE t){
 	auto c = make_shared<SFPower_Up>(t,sf_window);
@@ -375,36 +480,69 @@ void SFApp::DropPowerUp(Point2 pos,POWERTYPE t){
 }
 
 void SFApp::CheckWave(){
-	if(aliens.empty()){
-	}
+  cout<<wave<<endl;
+  if(!bossWave){
+    if(aliens.empty()){
+        wave++;
+      if(wave == 10) {
+        bossWave = true;
+        boss->SetPhase(0);
+        boss->SetHealth(12);
+        bossHealth->SetWidth(boss->GetHealth()*4);
+      }else{
+        aliens = wave_get->GetWave(wave);
+      }
+    }
+
+  }else{
+    switch(wave){
+      case 11:
+        boss->SetPhase(1);
+        boss->SetHealth(100);
+        break;
+      case 12:
+        boss->SetPhase(2);
+        boss->SetHealth(100);
+        break;
+      case 13:
+        boss->SetPhase(3);
+        boss->SetHealth(50);
+        break;
+    }
+    bossHealth->SetWidth(boss->GetHealth()*4);
+  }
 }
 
 
-// some projectile paths for when enemies shooting or die.
-// ideally would have liked this to be its own class but time constrains yo.
-void SFApp::CreateExplosion(Point2 point){
-	auto rotation = Vector2(1,0);
-	//list<make_shared<Vector2>>
-	for(int i = 0; i < 8; i++){
-		auto p = make_shared<SFProjectile>(P_ENEMY_ROUND,sf_window);
-		p->SetPosition(point);
-		p->SetDirection(rotation);
-		e_projectiles.push_back(p);
-		//rotating the vector 45 degrees
-		rotation = Vector2(
-			rotation.getX()*cos(M_PI_4)-rotation.getY()*sin(M_PI_4),
-			rotation.getX()*sin(M_PI_4)+rotation.getY()*cos(M_PI_4));
-	}
+void SFApp::WinGame(){
+  GUI.clear();
+  int canvas_w, canvas_h;
+  SDL_GetRendererOutputSize(sf_window->getRenderer(), &canvas_w, &canvas_h);
+
+  auto winscr = make_shared<SFGUI>(SFGUI_WIN,sf_window);
+  auto winscr_pos = Point2(canvas_w/2,canvas_h/2);
+  winscr->SetPosition(winscr_pos);
+  GUI.push_back(winscr);
+  auto finalScore = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
+  auto finalScore_pos = Point2(canvas_w/2,(canvas_h/2) - 30);
+  finalScore->SetPosition(finalScore_pos);
+  finalScore->SetText("Final Score : " + to_string(score));
+  GUI.push_back(finalScore);
 }
 
-void SFApp::FireAt(Point2 pos1, Point2 pos2){
-	//needed to normalise the vector
-	float length = sqrt((pow(pos1.getX(),2)-pow(pos2.getX(),2))
-											+(pow(pos1.getY(),2)-pow(pos2.getY(),2)));
-	// normalised vector
-	auto dir = Vector2((pos2.getX()-pos1.getX())/length,(pos2.getY()-pos1.getY())/length);
-	auto p = make_shared<SFProjectile>(P_ENEMY_ROUND,sf_window);
-	p->SetPosition(pos1);
-	p->SetDirection(dir);
-	e_projectiles.push_back(p);
+void SFApp::LoseGame(){
+  wave = -1;
+  GUI.clear();
+  int canvas_w, canvas_h;
+  SDL_GetRendererOutputSize(sf_window->getRenderer(), &canvas_w, &canvas_h);
+  auto losescr = make_shared<SFGUI>(SFGUI_WIN,sf_window);
+  auto losescr_pos = Point2(canvas_w/2,canvas_h/2);
+  losescr->SetPosition(losescr_pos);
+  GUI.push_back(losescr);
+
+  auto finalScore = make_shared<SFGUI>(SFGUI_TEXTBOX,sf_window);
+  auto finalScore_pos = Point2(canvas_w/2,(canvas_h/2) - 30);
+  finalScore->SetPosition(finalScore_pos);
+  finalScore->SetText("Final Score : " + to_string(score));
+  GUI.push_back(finalScore);
 }
