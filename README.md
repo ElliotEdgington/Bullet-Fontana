@@ -1,16 +1,13 @@
-# Starship Fontana #
+# Bullet Fontana #
 
-This is an example C++ application using the SDL library.
-It tries to be as nicely C++11 as possible but do keep in
-mind that SDL is written in C and, at some stage, you have
-to interface with it.
+This is an edit of [StarShipFontata](https://github.com/AidanDelaney/StarshipFontana) to create a bullet hell like game. Written in C++ 11 with SDL Libraries.
 
 ## Story ##
 The evil b’Kuhn has stolen the code to Earth’s defence system.
 With this code he can, at any time, defeat the entire human race.
 Only one woman is brave enough to go after b’Kuhn. Will she be
 Earth’s hero? Puzzle your way though the universe in the company
-of Commander Fontana in **Starship Fontana**.
+of Commander Fontana in **Bullet Fontana**.
 
 ## Installation ##
 You will have to have the SDL development libraries installed on
@@ -18,7 +15,7 @@ your system.  The easiest way to compile is to use a command-line
 
 ```bash
 $ g++ -c -std=c++11 src/*.cpp
-$ g++ -o starship *.o -lSDL2 -lSDL2_image
+$ g++ -o starship *.o -lSDL2 -lSDL2_image -lSDL2_ttf
 ```
 
 which will produce an executable file called "starship" in the
@@ -30,6 +27,4 @@ from the top-level directory.  The game will expect to find the
 `assets` directory under its current working directory.
 
 ## Credits ##
-The sprites in this game come directly from 
-[SpriteLib](http://www.widgetworx.com/widgetworx/portfolio/spritelib.html) and are used
-under the terms of the [CPL 1.0](http://opensource.org/licenses/cpl1.0.php).
+The font in this game is from [FontSquirrel](https://www.fontsquirrel.com) Under the [SIL 1.1](https://www.fontsquirrel.com/license/Anonymous-Pro)
