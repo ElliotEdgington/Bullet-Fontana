@@ -565,7 +565,7 @@ void SFApp::CheckWave(){
         boss->SetHealth(50);
         break;
     }
-    //sets the new width for the boss health bar
+    //sets the new width for the boss health bar 
     if(boss->GetHealth() > 0) bossHealth->SetWidth(boss->GetHealth()*4);
   }
 }
