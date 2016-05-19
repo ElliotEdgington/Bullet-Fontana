@@ -5,7 +5,7 @@ SFApp::SFApp(std::shared_ptr<SFWindow> window) :
 						P_UP(false), P_DOWN(false), P_LEFT(false),
 						P_RIGHT(false), P_SHOOT(false), P_FIRE(false),
 						fire_timer(20),power_timer(20), score(0),
-						gun_power(false), wall_power(2), wave(4), bossWave(false)
+						gun_power(false), wall_power(2), wave(0), bossWave(false)
 						{
 
   int canvas_w, canvas_h;
@@ -132,7 +132,7 @@ void SFApp::OnUpdateWorld() {
   if (player->IsAlive()) PlayerMovement();
 
   //cheats uncomment and build if youre stuck.
-  player->AddHealth(100);
+  //player->AddHealth(100);
 
 	//increment timers;
   //fire_timer is used to create a delay while firing
@@ -565,7 +565,7 @@ void SFApp::CheckWave(){
         boss->SetHealth(50);
         break;
     }
-    //sets the new width for the boss health bar 
+    //sets the new width for the boss health bar
     if(boss->GetHealth() > 0) bossHealth->SetWidth(boss->GetHealth()*4);
   }
 }
